@@ -4,16 +4,14 @@ a very small info-beamer package that restarts the raspberry pi on a schedule.
 
 ## usage
 
-1. in info-beamer hosted, create an empty package ("empty git push template").
-2. push this repository to it. the package page shows its own git url, for example:
-
-```
-git remote add info-beamer https://info-beamer.com/package/<your package id>.git
-git push --force info-beamer main:master
-```
-
+1. in info-beamer hosted, open the package list and press "add package".
+2. enter this url: `https://github.com/JoelFernandez0306/Info-Beamer-Pi-Restart.git`
 3. create a setup based on the package and assign it to your device(s).
 4. choose the restart hour, minute and which weekdays it should run on.
+
+to get later changes, open the package page and press "check for updates".
+
+[![import](https://cdn.infobeamer.com/s/img/import.png)](https://info-beamer.com/use?url=https://github.com/JoelFernandez0306/Info-Beamer-Pi-Restart.git)
 
 the default is every day at 04:00.
 
