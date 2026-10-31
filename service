@@ -39,6 +39,18 @@ def load_config():
         return {}
 
 
+def parse_time(value):
+    # turns "hh:mm" into (hour, minute). empty or invalid means no restart.
+    try:
+        hour, minute = str(value).strip().split(":")
+        hour, minute = int(hour), int(minute)
+    except ValueError:
+        return None
+    if 0 <= hour <= 23 and 0 <= minute <= 59:
+        return (hour, minute)
+    return None
+
+
 def reboot():
     # try several ways, as the available command depends on the os setup.
     try:
@@ -89,15 +101,9 @@ def main():
             reboot()
         last_manual = manual
         now = datetime.now()
-        try:
-            hour = int(cfg.get("hour", 4))
-            minute = int(cfg.get("minute", 0))
-        except (TypeError, ValueError):
-            hour, minute = 4, 0
-        day_enabled = cfg.get(days[now.weekday()], True)
-
-        due = (now.hour, now.minute) == (hour, minute)
-        if due and day_enabled and last_run != now.date():
+        when = parse_time(cfg.get(days[now.weekday()], "04:00"))
+        due = when is not None and (now.hour, now.minute) == when
+        if due and last_run != now.date():
             last_run = now.date()
             if uptime() < min_uptime:
                 log("skipping restart, device booted recently")

@@ -7,13 +7,13 @@ a very small info-beamer package that restarts the raspberry pi on a schedule.
 1. in info-beamer hosted, open the package list and press "add package".
 2. enter this url: `https://github.com/JoelFernandez0306/Info-Beamer-Pi-Restart.git`
 3. create a setup based on the package and assign it to your device(s).
-4. choose the restart hour, minute and which weekdays it should run on.
+4. enter a restart time for each weekday, as 24 hour `hh:mm`. leave a day empty to skip it.
 
 to get later changes, open the package page and press "check for updates".
 
 [![import](https://cdn.infobeamer.com/s/img/import.png)](https://info-beamer.com/use?url=https://github.com/JoelFernandez0306/Info-Beamer-Pi-Restart.git)
 
-the default is every day at 04:00.
+the default is 04:00 on every day. for example, monday `03:30`, saturday `06:00`, sunday empty.
 
 ## manual restart
 
