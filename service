@@ -10,6 +10,11 @@ import sys
 import time
 from datetime import datetime
 
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    ZoneInfo = None
+
 days = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
 
 # never restart if the device booted less than this many seconds ago. this
@@ -49,6 +54,18 @@ def parse_time(value):
     if 0 <= hour <= 23 and 0 <= minute <= 59:
         return (hour, minute)
     return None
+
+
+def local_now(cfg):
+    # info-beamer passes the configured timezone of the device in the config
+    # metadata. use it if possible, otherwise fall back to the system clock.
+    name = cfg.get("__metadata", {}).get("timezone")
+    if name and ZoneInfo:
+        try:
+            return datetime.now(ZoneInfo(name))
+        except Exception as e:
+            log("bad timezone %s: %s" % (name, e))
+    return datetime.now()
 
 
 def reboot():
@@ -100,7 +117,7 @@ def main():
             last_manual = manual
             reboot()
         last_manual = manual
-        now = datetime.now()
+        now = local_now(cfg)
         when = parse_time(cfg.get("time_" + days[now.weekday()], "04:00"))
         due = when is not None and (now.hour, now.minute) == when
         if due and last_run != now.date():
