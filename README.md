@@ -10,6 +10,12 @@ a very small info-beamer package that restarts the raspberry pi on a schedule.
 
 the default is every day at 04:00.
 
+## manual restart
+
+to restart the device right away, switch on "restart now" in the package config and save. the device restarts within about 10 seconds.
+
+after the restart, switch it off again. to restart manually a second time, it has to go from off to on again. the switch being left on does nothing by itself, so it can never cause a reboot loop. a manual restart ignores the 10 minute boot guard.
+
 ## notes
 
 - the time is the device's local time, so set the correct timezone for the device in info-beamer.

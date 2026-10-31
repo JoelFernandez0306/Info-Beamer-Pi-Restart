@@ -53,9 +53,19 @@ def reboot():
 
 def main():
     last_run = None  # date of the last attempt, so we fire once per day
+    # the manual switch is only acted on when it changes from off to on while
+    # the service is running. the value seen at startup is the baseline, so a
+    # switch that was left on never causes a reboot loop.
+    last_manual = bool(load_config().get("restart_now", False))
     log("service started")
     while True:
         cfg = load_config()
+        manual = bool(cfg.get("restart_now", False))
+        if manual and not last_manual:
+            log("manual restart requested")
+            last_manual = manual
+            reboot()
+        last_manual = manual
         now = datetime.now()
         try:
             hour = int(cfg.get("hour", 4))

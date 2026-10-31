@@ -5,6 +5,16 @@
   },
   "options": [
     {
+      "title": "manual restart",
+      "type": "section"
+    },
+    {
+      "title": "restart now (switch on to restart, switch off again afterwards)",
+      "name": "restart_now",
+      "type": "boolean",
+      "default": false
+    },
+    {
       "title": "restart time",
       "type": "section"
     },
