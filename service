@@ -41,23 +41,45 @@ def load_config():
 
 def reboot():
     # try several ways, as the available command depends on the os setup.
-    for cmd in (["/sbin/reboot"], ["reboot"], ["systemctl", "reboot"]):
+    try:
+        os.sync()
+    except Exception:
+        pass
+    log("running as uid %d" % os.getuid())
+    for cmd in (["/sbin/reboot"], ["reboot"], ["systemctl", "reboot"], ["/sbin/reboot", "-f"]):
         try:
-            if subprocess.call(cmd) == 0:
+            code = subprocess.call(cmd)
+            log("%s exited with %d" % (" ".join(cmd), code))
+            if code == 0:
                 return True
-        except OSError:
-            continue
-    log("could not run any reboot command")
+        except OSError as e:
+            log("%s failed: %s" % (" ".join(cmd), e))
+    # last resort: ask the kernel directly
+    try:
+        with open("/proc/sys/kernel/sysrq", "w") as f:
+            f.write("1")
+        with open("/proc/sysrq-trigger", "w") as f:
+            f.write("b")
+        return True
+    except Exception as e:
+        log("sysrq reboot failed: %s" % e)
+    log("could not reboot the device")
     return False
 
 
 def main():
     last_run = None  # date of the last attempt, so we fire once per day
-    # the manual switch is only acted on when it changes from off to on while
-    # the service is running. the value seen at startup is the baseline, so a
-    # switch that was left on never causes a reboot loop.
-    last_manual = bool(load_config().get("restart_now", False))
-    log("service started")
+    # the manual switch is acted on when it changes from off to on while the
+    # service runs. if it is already on at startup, it counts as a request only
+    # when the device has been up for a while. this covers the service being
+    # restarted by a config change, and a reboot never repeats itself because
+    # the uptime is low right after booting.
+    cfg = load_config()
+    log("service started, config: %s" % json.dumps(cfg))
+    last_manual = bool(cfg.get("restart_now", False))
+    if last_manual and uptime() >= min_uptime:
+        log("manual restart requested (switch was already on)")
+        reboot()
     while True:
         cfg = load_config()
         manual = bool(cfg.get("restart_now", False))

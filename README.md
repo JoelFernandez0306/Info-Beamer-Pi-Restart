@@ -24,6 +24,7 @@ after the restart, switch it off again. to restart manually a second time, it ha
 ## notes
 
 - the time is the device's local time, so set the correct timezone for the device in info-beamer.
-- the package asks for the `run-as-root` permission in `node.json`, which the service needs to run the reboot command.
+- the package asks for the `run-as-root` and `unboxed` permissions in `node.json`, which the service needs to run the reboot command. info-beamer only applies permission changes after the device has been restarted once, so power cycle the device after adding the package or after a permission change.
+- the service prints what it does, prefixed with `[restart]`. check the device's service log if a restart does not happen.
 - the device is never restarted within 10 minutes of booting. this avoids reboot loops if the clock is wrong right after boot.
 - the package shows nothing on screen, it only runs the `service` script.
