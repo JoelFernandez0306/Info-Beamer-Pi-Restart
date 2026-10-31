@@ -1,0 +1,35 @@
+{
+  "name": "scheduled restart",
+  "permissions": {
+    "reboot": "needed to restart the device on schedule"
+  },
+  "options": [
+    {
+      "title": "restart time",
+      "type": "section"
+    },
+    {
+      "title": "hour (0-23)",
+      "name": "hour",
+      "type": "integer",
+      "default": 4
+    },
+    {
+      "title": "minute (0-59)",
+      "name": "minute",
+      "type": "integer",
+      "default": 0
+    },
+    {
+      "title": "days",
+      "type": "section"
+    },
+    {"title": "monday", "name": "mon", "type": "boolean", "default": true},
+    {"title": "tuesday", "name": "tue", "type": "boolean", "default": true},
+    {"title": "wednesday", "name": "wed", "type": "boolean", "default": true},
+    {"title": "thursday", "name": "thu", "type": "boolean", "default": true},
+    {"title": "friday", "name": "fri", "type": "boolean", "default": true},
+    {"title": "saturday", "name": "sat", "type": "boolean", "default": true},
+    {"title": "sunday", "name": "sun", "type": "boolean", "default": true}
+  ]
+}

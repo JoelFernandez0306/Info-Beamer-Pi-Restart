@@ -1,0 +1,79 @@
+#!/usr/bin/python3
+# restarts the device once a day at a configured time on selected weekdays.
+# reads config.json from the package directory on every loop, so config
+# changes made in the info-beamer ui apply without restarting the service.
+
+import json
+import os
+import subprocess
+import sys
+import time
+from datetime import datetime
+
+days = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+
+# never restart if the device booted less than this many seconds ago. this
+# prevents reboot loops when the clock is wrong right after boot.
+min_uptime = 600
+
+
+def log(msg):
+    print("[restart] " + msg)
+    sys.stdout.flush()
+
+
+def uptime():
+    try:
+        with open("/proc/uptime") as f:
+            return float(f.read().split()[0])
+    except Exception:
+        return 0.0
+
+
+def load_config():
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def reboot():
+    # try several ways, as the available command depends on the os setup.
+    for cmd in (["/sbin/reboot"], ["reboot"], ["systemctl", "reboot"]):
+        try:
+            if subprocess.call(cmd) == 0:
+                return True
+        except OSError:
+            continue
+    log("could not run any reboot command")
+    return False
+
+
+def main():
+    last_run = None  # date of the last attempt, so we fire once per day
+    log("service started")
+    while True:
+        cfg = load_config()
+        now = datetime.now()
+        try:
+            hour = int(cfg.get("hour", 4))
+            minute = int(cfg.get("minute", 0))
+        except (TypeError, ValueError):
+            hour, minute = 4, 0
+        day_enabled = cfg.get(days[now.weekday()], True)
+
+        due = (now.hour, now.minute) == (hour, minute)
+        if due and day_enabled and last_run != now.date():
+            last_run = now.date()
+            if uptime() < min_uptime:
+                log("skipping restart, device booted recently")
+            else:
+                log("restarting now")
+                reboot()
+        time.sleep(10)
+
+
+if __name__ == "__main__":
+    main()
