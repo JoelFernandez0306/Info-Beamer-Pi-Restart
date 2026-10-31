@@ -27,4 +27,5 @@ after the restart, switch it off again. to restart manually a second time, it ha
 - the package asks for the `run-as-root` and `unboxed` permissions in `node.json`, which the service needs to run the reboot command. info-beamer only applies permission changes after the device has been restarted once, so power cycle the device after adding the package or after a permission change.
 - the service prints what it does, prefixed with `[restart]`. check the device's service log if a restart does not happen.
 - the device is never restarted within 10 minutes of booting. this avoids reboot loops if the clock is wrong right after boot.
+- the service is written for python 2.7, because that is all info-beamer os ships. it also runs on python 3.
 - the package shows nothing on screen, it only runs the `service` script.

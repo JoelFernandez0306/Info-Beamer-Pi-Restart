@@ -1,5 +1,7 @@
-#!/usr/bin/python3
-# restarts the device once a day at a configured time on selected weekdays.
+#!/usr/bin/python
+# restarts the device on a schedule, with a different time for each weekday,
+# and on demand through the "restart now" switch.
+# runs on the python 2.7 found on info-beamer os (and on python 3 too).
 # reads config.json from the package directory on every loop, so config
 # changes made in the info-beamer ui apply without restarting the service.
 
@@ -8,18 +10,16 @@ import os
 import subprocess
 import sys
 import time
-from datetime import datetime
-
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    ZoneInfo = None
 
 days = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
 
-# never restart if the device booted less than this many seconds ago. this
-# prevents reboot loops when the clock is wrong right after boot.
+# never restart on a schedule or request if the device booted less than this
+# many seconds ago. this prevents reboot loops when the clock is wrong right
+# after boot.
 min_uptime = 600
+
+# the timezone currently applied to this process
+current_tz = [None]
 
 
 def log(msg):
@@ -44,45 +44,51 @@ def load_config():
         return {}
 
 
+def apply_timezone(cfg):
+    # info-beamer passes the timezone of the device in the config metadata.
+    # use it for local time. if it cannot be applied, the system zone is used.
+    name = cfg.get("__metadata", {}).get("timezone")
+    if not name or name == current_tz[0]:
+        return
+    try:
+        os.environ["TZ"] = str(name)
+        time.tzset()
+        current_tz[0] = name
+        log("timezone set to %s (%s)" % (name, time.tzname[0]))
+    except Exception as e:
+        current_tz[0] = name
+        log("could not set timezone %s: %s" % (name, e))
+
+
 def parse_time(value):
     # turns "hh:mm" into (hour, minute). empty or invalid means no restart.
     try:
-        hour, minute = str(value).strip().split(":")
+        hour, minute = ("%s" % value).strip().split(":")
         hour, minute = int(hour), int(minute)
-    except ValueError:
+    except Exception:
         return None
     if 0 <= hour <= 23 and 0 <= minute <= 59:
         return (hour, minute)
     return None
 
 
-def local_now(cfg):
-    # info-beamer passes the configured timezone of the device in the config
-    # metadata. use it if possible, otherwise fall back to the system clock.
-    name = cfg.get("__metadata", {}).get("timezone")
-    if name and ZoneInfo:
-        try:
-            return datetime.now(ZoneInfo(name))
-        except Exception as e:
-            log("bad timezone %s: %s" % (name, e))
-    return datetime.now()
+def run(cmd):
+    try:
+        code = subprocess.call(cmd)
+        log("%s exited with %d" % (" ".join(cmd), code))
+        return code == 0
+    except OSError as e:
+        log("%s failed: %s" % (" ".join(cmd), e))
+        return False
 
 
 def reboot():
     # try several ways, as the available command depends on the os setup.
-    try:
-        os.sync()
-    except Exception:
-        pass
+    run(["sync"])
     log("running as uid %d" % os.getuid())
-    for cmd in (["/sbin/reboot"], ["reboot"], ["systemctl", "reboot"], ["/sbin/reboot", "-f"]):
-        try:
-            code = subprocess.call(cmd)
-            log("%s exited with %d" % (" ".join(cmd), code))
-            if code == 0:
-                return True
-        except OSError as e:
-            log("%s failed: %s" % (" ".join(cmd), e))
+    for cmd in (["/sbin/reboot"], ["reboot"], ["/sbin/reboot", "-f"]):
+        if run(cmd):
+            return True
     # last resort: ask the kernel directly
     try:
         with open("/proc/sys/kernel/sysrq", "w") as f:
@@ -97,13 +103,14 @@ def reboot():
 
 
 def main():
-    last_run = None  # date of the last attempt, so we fire once per day
+    last_run = None  # day of the last scheduled restart, so we fire once a day
     # the manual switch is acted on when it changes from off to on while the
     # service runs. if it is already on at startup, it counts as a request only
     # when the device has been up for a while. this covers the service being
     # restarted by a config change, and a reboot never repeats itself because
     # the uptime is low right after booting.
     cfg = load_config()
+    apply_timezone(cfg)
     log("service started, config: %s" % json.dumps(cfg))
     last_manual = bool(cfg.get("restart_now", False))
     if last_manual and uptime() >= min_uptime:
@@ -111,21 +118,23 @@ def main():
         reboot()
     while True:
         cfg = load_config()
+        apply_timezone(cfg)
         manual = bool(cfg.get("restart_now", False))
         if manual and not last_manual:
             log("manual restart requested")
             last_manual = manual
             reboot()
         last_manual = manual
-        now = local_now(cfg)
-        when = parse_time(cfg.get("time_" + days[now.weekday()], "04:00"))
-        due = when is not None and (now.hour, now.minute) == when
-        if due and last_run != now.date():
-            last_run = now.date()
+
+        now = time.localtime()
+        when = parse_time(cfg.get("time_" + days[now.tm_wday], "04:00"))
+        today = (now.tm_year, now.tm_yday)
+        if when is not None and (now.tm_hour, now.tm_min) == when and last_run != today:
+            last_run = today
             if uptime() < min_uptime:
                 log("skipping restart, device booted recently")
             else:
-                log("restarting now")
+                log("scheduled restart now")
                 reboot()
         time.sleep(10)
 
