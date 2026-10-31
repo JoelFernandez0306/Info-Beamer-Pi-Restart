@@ -4,9 +4,16 @@
   "desc": "restarts the raspberry pi on a schedule, with a manual restart switch.",
   "version": "1.0",
   "repository": "https://github.com/JoelFernandez0306/Info-Beamer-Pi-Restart",
-  "platforms": ["pi/epoch-1", "pi/epoch-2"],
+  "platforms": [
+    "pi/epoch-1",
+    "pi/epoch-2"
+  ],
   "offline": {
     "support": "yes",
     "info": "needs no network access, but the device clock must be correct."
+  },
+  "nesting": {
+    "parents": "any",
+    "childs": []
   }
 }
