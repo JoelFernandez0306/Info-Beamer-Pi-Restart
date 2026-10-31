@@ -1,7 +1,7 @@
 {
   "name": "scheduled restart",
   "permissions": {
-    "reboot": "needed to restart the device on schedule"
+    "run-as-root": "needed to restart the device"
   },
   "options": [
     {

@@ -24,6 +24,6 @@ after the restart, switch it off again. to restart manually a second time, it ha
 ## notes
 
 - the time is the device's local time, so set the correct timezone for the device in info-beamer.
-- the package asks for the `reboot` permission in `node.json`.
+- the package asks for the `run-as-root` permission in `node.json`, which the service needs to run the reboot command.
 - the device is never restarted within 10 minutes of booting. this avoids reboot loops if the clock is wrong right after boot.
 - the package shows nothing on screen, it only runs the `service` script.
