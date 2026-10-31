@@ -21,43 +21,43 @@
     },
     {
       "title": "monday",
-      "name": "mon",
+      "name": "time_mon",
       "type": "string",
       "default": "04:00"
     },
     {
       "title": "tuesday",
-      "name": "tue",
+      "name": "time_tue",
       "type": "string",
       "default": "04:00"
     },
     {
       "title": "wednesday",
-      "name": "wed",
+      "name": "time_wed",
       "type": "string",
       "default": "04:00"
     },
     {
       "title": "thursday",
-      "name": "thu",
+      "name": "time_thu",
       "type": "string",
       "default": "04:00"
     },
     {
       "title": "friday",
-      "name": "fri",
+      "name": "time_fri",
       "type": "string",
       "default": "04:00"
     },
     {
       "title": "saturday",
-      "name": "sat",
+      "name": "time_sat",
       "type": "string",
       "default": "04:00"
     },
     {
       "title": "sunday",
-      "name": "sun",
+      "name": "time_sun",
       "type": "string",
       "default": "04:00"
     }

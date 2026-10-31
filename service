@@ -101,7 +101,7 @@ def main():
             reboot()
         last_manual = manual
         now = datetime.now()
-        when = parse_time(cfg.get(days[now.weekday()], "04:00"))
+        when = parse_time(cfg.get("time_" + days[now.weekday()], "04:00"))
         due = when is not None and (now.hour, now.minute) == when
         if due and last_run != now.date():
             last_run = now.date()
